@@ -1,0 +1,43 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: edge, namespace: apps}
+spec:
+  hosts: ["edge.workshop.example.com"]
+  gateways: ["istio-system/workshop"]
+  http:
+    - route:
+        - destination: {host: edge.apps.svc.cluster.local, port: {number: 8080}}
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: identity, namespace: apps}
+spec:
+  hosts: ["identity.workshop.example.com"]
+  gateways: ["istio-system/workshop"]
+  http:
+    - route:
+        - destination: {host: identity-service.apps.svc.cluster.local, port: {number: 8080}}
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: portservice, namespace: apps}
+spec:
+  hosts: ["port.workshop.example.com"]
+  gateways: ["istio-system/workshop"]
+  http:
+    - route:
+        - destination: {host: portservice.apps.svc.cluster.local, port: {number: 8082}}
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: app-paths, namespace: apps}
+spec:
+  hosts: ["app.workshop.example.com"]
+  gateways: ["istio-system/workshop"]
+  http:
+    - match:
+        - uri: {prefix: /onboarding}
+      route:
+        - destination: {host: onboarding.apps.svc.cluster.local, port: {number: 8080}}
+    - route:
+        - destination: {host: edge.apps.svc.cluster.local, port: {number: 8080}}

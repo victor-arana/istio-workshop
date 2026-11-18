@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portservice
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: portservice}
+  template:
+    metadata:
+      labels: {app: portservice}
+    spec:
+      containers:
+        - name: echo
+          image: mendhak/http-https-echo:36
+          env:
+            - {name: HTTP_PORT, value: "8082"}
+            - {name: ECHO_BACK_TO_CLIENT, value: "false"}
+          ports:
+            - containerPort: 8082
+              name: http
+          resources:
+            requests: {cpu: 20m, memory: 64Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portservice
+  namespace: apps
+  labels: {app: portservice}
+spec:
+  selector: {app: portservice}
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082

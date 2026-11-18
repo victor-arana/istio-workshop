@@ -1,0 +1,33 @@
+#cloud-config
+# Bare VM: no packages, no tools, no repository. Only the environment variables the stacks need,
+# so that once the attendee installs the tools and signs in with `az login`, the stacks need no tfvars.
+write_files:
+  - path: /etc/profile.d/workshop.sh
+    permissions: "0644"
+    content: |
+      export WORKSHOP_NAME=${attendee}
+      export WORKSHOP_REPO_URL=${repo_url}
+      export ISTIO_VERSION=${istio_version}
+      export TF_VAR_attendee=${attendee}
+      export TF_VAR_location=${location}
+      export TF_VAR_kubernetes_version=${kubernetes_version}
+      export TF_VAR_vm_size=${aks_vm_size}
+      export TF_VAR_node_count=${aks_node_count}
+      export TF_VAR_delete_after=${delete_after}
+      export TF_VAR_istio_version=${istio_version}
+  - path: /home/workshop/.ssh/id_ed25519
+    owner: workshop:workshop
+    permissions: "0600"
+    content: |
+      ${indent(6, deploy_key)}
+runcmd:
+  - mkdir -p /home/workshop/.ssh && chown workshop:workshop /home/workshop/.ssh && chmod 700 /home/workshop/.ssh
+  - ssh-keyscan -t ed25519 github.com >> /home/workshop/.ssh/known_hosts
+  - chown workshop:workshop /home/workshop/.ssh/known_hosts && chmod 644 /home/workshop/.ssh/known_hosts
+  
+  - sudo -u workshop -H git clone ${repo_url} /home/workshop/istio-workshop
+  - sudo -u workshop -H git -C /home/workshop/istio-workshop config user.name "${attendee}"
+  - sudo -u workshop -H git -C /home/workshop/istio-workshop config user.email "${attendee}@workshop.local"
+  - ISTIO_VERSION=${istio_version} bash /home/workshop/istio-workshop/scripts/install-tools.sh
+  - echo 'source "$HOME/istio-workshop/labs/env.sh"' >> /home/workshop/.bashrc
+  - touch /home/workshop/.workshop-ready && chown workshop:workshop /home/workshop/.workshop-ready

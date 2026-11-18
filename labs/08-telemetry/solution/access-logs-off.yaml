@@ -1,0 +1,9 @@
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata: {name: edge-access-logs, namespace: apps}
+spec:
+  selector:
+    matchLabels: {app: edge}
+  accessLogging:
+    - providers: [{name: envoy}]
+      disabled: true

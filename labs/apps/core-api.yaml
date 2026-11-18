@@ -1,0 +1,60 @@
+# Mock core API outside the mesh (no sidecar): nginx that requires a client certificate.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: core-api-nginx
+  namespace: external
+data:
+  default.conf: |
+    server {
+      listen 8443 ssl;
+      ssl_certificate         /certs/tls.crt;
+      ssl_certificate_key     /certs/tls.key;
+      ssl_client_certificate  /certs/ca.crt;
+      ssl_verify_client       on;
+      location / {
+        default_type application/json;
+        return 200 '{"service":"core-api","client_dn":"$ssl_client_s_dn","verified":"$ssl_client_verify"}\n';
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-api
+  namespace: external
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: core-api}
+  template:
+    metadata:
+      labels: {app: core-api}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - {name: conf, mountPath: /etc/nginx/conf.d}
+            - {name: certs, mountPath: /certs, readOnly: true}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+      volumes:
+        - name: conf
+          configMap: {name: core-api-nginx}
+        - name: certs
+          secret: {secretName: core-api-tls}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-api
+  namespace: external
+spec:
+  selector: {app: core-api}
+  ports:
+    - name: tls
+      port: 443
+      targetPort: 8443

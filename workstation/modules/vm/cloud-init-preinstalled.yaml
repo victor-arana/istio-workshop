@@ -1,0 +1,24 @@
+#cloud-config
+# Installs the tools with the repository's own scripts/install-tools.sh, so the bare and the
+# preinstalled variants run exactly the same commands.
+package_update: true
+packages: [git, curl]
+write_files:
+  - path: /etc/profile.d/workshop.sh
+    permissions: "0644"
+    content: |
+      export WORKSHOP_NAME=${attendee}
+      export WORKSHOP_REPO_URL=${repo_url}
+      export ISTIO_VERSION=${istio_version}
+      export TF_VAR_attendee=${attendee}
+      export TF_VAR_location=${location}
+      export TF_VAR_kubernetes_version=${kubernetes_version}
+      export TF_VAR_vm_size=${aks_vm_size}
+      export TF_VAR_node_count=${aks_node_count}
+      export TF_VAR_delete_after=${delete_after}
+      export TF_VAR_istio_version=${istio_version}
+runcmd:
+  - sudo -u workshop -H git clone ${repo_url} /home/workshop/istio-workshop
+  - ISTIO_VERSION=${istio_version} bash /home/workshop/istio-workshop/scripts/install-tools.sh
+  - echo 'source "$HOME/istio-workshop/labs/env.sh"' >> /home/workshop/.bashrc
+  - touch /home/workshop/.workshop-ready && chown workshop:workshop /home/workshop/.workshop-ready

@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata: {name: core-api, namespace: apps}
+spec:
+  hosts: ["core-api.workshop.example.com"]
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+      targetPort: 443          # sidecar sends to 443 and originates TLS there
+  endpoints:
+    - address: core-api.external.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata: {name: core-api, namespace: apps}
+spec:
+  host: core-api.workshop.example.com
+  trafficPolicy:
+    tls:
+      mode: MUTUAL
+      credentialName: core-api-client
+      sni: core-api.workshop.example.com

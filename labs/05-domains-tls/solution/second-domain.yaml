@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata: {name: second-domain, namespace: istio-system}
+spec:
+  selector: {istio: ingress}
+  servers:
+    - port: {number: 80, name: http-shop, protocol: HTTP}
+      hosts: ["shop.example.net"]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: shop, namespace: apps}
+spec:
+  hosts: ["shop.example.net"]
+  gateways: ["istio-system/second-domain"]
+  http:
+    - route:
+        - destination: {host: edge.apps.svc.cluster.local, port: {number: 8080}}
+---
+# Lab 3 default-deny also applies: open the new host
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: {name: allow-shop-public, namespace: istio-system}
+spec:
+  selector:
+    matchLabels: {istio: ingress}
+  action: ALLOW
+  rules:
+    - to:
+        - operation: {hosts: ["shop.example.net"]}

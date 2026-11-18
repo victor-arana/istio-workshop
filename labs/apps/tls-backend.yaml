@@ -1,0 +1,42 @@
+# Terminates TLS itself on 8443 with its own certificate (secret tls-backend-cert).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tls-backend
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: tls-backend}
+  template:
+    metadata:
+      labels: {app: tls-backend}
+    spec:
+      containers:
+        - name: echo
+          image: mendhak/http-https-echo:36
+          env:
+            - {name: HTTP_PORT, value: "8080"}
+            - {name: HTTPS_PORT, value: "8443"}
+          ports:
+            - {containerPort: 8443, name: tls}
+          volumeMounts:
+            - {name: cert, mountPath: /app/fullchain.pem, subPath: tls.crt, readOnly: true}
+            - {name: cert, mountPath: /app/privkey.pem, subPath: tls.key, readOnly: true}
+          resources:
+            requests: {cpu: 20m, memory: 64Mi}
+      volumes:
+        - name: cert
+          secret: {secretName: tls-backend-cert}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tls-backend
+  namespace: apps
+spec:
+  selector: {app: tls-backend}
+  ports:
+    - name: tls   # protocol-prefixed so Istio treats it as TLS, not HTTP
+      port: 8443
+      targetPort: 8443

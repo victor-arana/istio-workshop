@@ -1,0 +1,18 @@
+subscription_id    = "" # the instructor's subscription (VMs only)
+location           = "eastus"
+ssh_allowed_cidrs  = ["203.0.113.0/24"] # replace with office/VPN egress ranges
+repo_url           = "https://example.com/your-org/istio-workshop.git"
+delete_after       = "2026-12-01"
+kubernetes_version = "1.33" # pick from `az aks get-versions -l <location>`
+aks_location       = ""            # where attendees create clusters; empty = same as `location`
+vm_size            = "Standard_D2ds_v4" # workshop VM: Standard_B2s is restricted for some subscriptions, check with scripts/check-region.sh
+aks_vm_size        = "Standard_D2s_v4"  # attendees' cluster nodes: confirm in THEIR subscription too
+aks_node_count     = 3
+
+shutdown_time     = "2100"                          # daily auto-shutdown, HHMM, in the time zone below
+shutdown_timezone = "Central America Standard Time" # UTC-6, no daylight saving. Windows time zone ID, not "UTC-6"
+
+attendees = {
+  "attendee-01" = "ssh-ed25519 AAAA... alice"
+  "attendee-02" = "ssh-ed25519 AAAA... bob"
+}

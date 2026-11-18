@@ -1,0 +1,8 @@
+# Not needed on the workshop VM: these come from TF_VAR_* in /etc/profile.d/workshop.sh.
+# Use this only to run the stack from elsewhere. Also export ARM_SUBSCRIPTION_ID.
+attendee           = "attendee-01"
+location           = "westeurope"
+kubernetes_version = "1.33"
+vm_size            = "Standard_D2s_v5"
+node_count         = 3
+delete_after       = "2026-12-01"

@@ -1,0 +1,22 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata: {name: passthrough, namespace: istio-system}
+spec:
+  selector: {istio: ingress}
+  servers:
+    - port: {number: 443, name: tls-passthrough, protocol: TLS}
+      tls: {mode: PASSTHROUGH}
+      hosts: ["secure.workshop.example.com"]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: secure, namespace: apps}
+spec:
+  hosts: ["secure.workshop.example.com"]
+  gateways: ["istio-system/passthrough"]
+  tls:
+    - match:
+        - port: 443
+          sniHosts: ["secure.workshop.example.com"]
+      route:
+        - destination: {host: tls-backend.apps.svc.cluster.local, port: {number: 8443}}

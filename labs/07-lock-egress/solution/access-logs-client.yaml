@@ -1,0 +1,8 @@
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata: {name: client-access-logs, namespace: apps}
+spec:
+  selector:
+    matchLabels: {app: client}
+  accessLogging:
+    - providers: [{name: envoy}]

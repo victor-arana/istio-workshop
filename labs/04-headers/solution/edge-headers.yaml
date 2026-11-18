@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: {name: edge, namespace: apps}
+spec:
+  hosts: ["edge.workshop.example.com"]
+  gateways: ["istio-system/workshop"]
+  http:
+    - route:
+        - destination: {host: edge.apps.svc.cluster.local, port: {number: 8080}}
+      headers:
+        request:
+          set: {x-workshop-name: attendee-01}
+          remove: ["x-debug"]
+        response:
+          set:
+            strict-transport-security: "max-age=31536000; includeSubDomains"
+            x-content-type-options: nosniff
+          remove: ["x-envoy-upstream-service-time"]

@@ -1,0 +1,39 @@
+# Apply with: envsubst < allow.yaml | kubectl apply -f -
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: {name: allow-edge-from-me, namespace: istio-system}
+spec:
+  selector:
+    matchLabels: {istio: ingress}
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            ipBlocks: ["${MY_IP}/32"]   # peer address (externalTrafficPolicy: Local)
+      to:
+        - operation: {hosts: ["edge.workshop.example.com"]}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: {name: allow-app-with-token, namespace: istio-system}
+spec:
+  selector:
+    matchLabels: {istio: ingress}
+  action: ALLOW
+  rules:
+    - to:
+        - operation: {hosts: ["app.workshop.example.com"]}
+      when:
+        - key: request.headers[x-workshop-token]
+          values: ["made-up-token-123"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: {name: allow-identity-public, namespace: istio-system}
+spec:
+  selector:
+    matchLabels: {istio: ingress}
+  action: ALLOW
+  rules:
+    - to:
+        - operation: {hosts: ["identity.workshop.example.com"]}

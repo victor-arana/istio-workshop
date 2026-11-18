@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: identity}
+  template:
+    metadata:
+      labels: {app: identity}
+    spec:
+      containers:
+        - name: echo
+          image: mendhak/http-https-echo:36
+          env:
+            - {name: HTTP_PORT, value: "8080"}
+            - {name: ECHO_BACK_TO_CLIENT, value: "false"}
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests: {cpu: 20m, memory: 64Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+  namespace: apps
+  labels: {app: identity}
+spec:
+  selector: {app: identity}
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

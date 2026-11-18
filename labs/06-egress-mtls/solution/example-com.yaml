@@ -1,0 +1,9 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata: {name: example-com, namespace: apps}
+spec:
+  hosts: ["example.com"]
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - {number: 80, name: http, protocol: HTTP}
